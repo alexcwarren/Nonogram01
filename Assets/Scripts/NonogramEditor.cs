@@ -122,7 +122,7 @@ public class NonogramEditor : Nonogram
             result = "?";
         }
 
-        Debug.Log($"\n\nDIFFICULT = {result}\n\n");
+        Debug.Log($"\n\nDIFFICULTY = {result}\n\n");
 
         return result;
     }
