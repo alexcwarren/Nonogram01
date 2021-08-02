@@ -132,9 +132,7 @@ public class NonogramEditor : Nonogram
             CheckColumn(col);
         }
 
-        SubmitSolution(true);
-        
-        return isValidSolution;
+        return ValidateSolution(true);
     }
 
     void CheckColumn(int col)
@@ -150,9 +148,7 @@ public class NonogramEditor : Nonogram
             CheckRow(row);
         }
 
-        SubmitSolution(true);
-        
-        return isValidSolution;
+        return ValidateSolution(true);
     }
 
     void CheckRow(int row)

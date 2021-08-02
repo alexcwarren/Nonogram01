@@ -225,7 +225,12 @@ public class Nonogram : MonoBehaviour
         } // end for row
     }
 
-    public void SubmitSolution(bool beQuiet = false)
+    public void SubmitSolution()
+    {
+        ValidateSolution();
+    }
+
+    protected bool ValidateSolution(bool beQuiet = false)
     {
         UpdateLabels();
 
@@ -277,7 +282,7 @@ public class Nonogram : MonoBehaviour
             CorrectButton.SetActive(true);
         }
 
-        // return isValidSolution;
+        return isValidSolution;
     }
 
     void SetEndStatusButtons(bool status)
@@ -298,6 +303,7 @@ public class Nonogram : MonoBehaviour
 
     public static void UpdateLabels()
     {
+        // Reset updateCells elements
         for (int i = 0; i < updatedCells.GetLength(0); i++)
         {
             for (int j = 0; j < updatedCells.GetLength(1); j++)
@@ -353,7 +359,7 @@ public class Nonogram : MonoBehaviour
                     bool lastWasOn = false;
                     bool isFirstToggle = true;
 
-                    // If row LabelCell
+                    // If LabelCell is a row LabelCell
                     if (lblRow >= maxLabels)
                     {
                         isRowLabel = true;
@@ -361,7 +367,7 @@ public class Nonogram : MonoBehaviour
                         tglCol = maxLabels;
                         colOffset = 1;
                     }
-                    // Else (i.e. is column LabelCell)
+                    // Else (i.e. is a column LabelCell)
                     else
                     {
                         isColLabel = true;
