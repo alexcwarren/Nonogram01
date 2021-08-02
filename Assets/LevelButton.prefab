@@ -228,3 +228,5 @@ MonoBehaviour:
   button: {fileID: 4880922303220023001}
   text: {fileID: 4251114711267188741}
   levelBuildIndex: 0
+  activeFontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  inactiveFontColor: {r: 1, g: 1, b: 1, a: 1}
