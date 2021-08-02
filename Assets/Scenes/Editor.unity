@@ -123,6 +123,128 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &396213117
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 1883893551}
+    m_Modifications:
+    - target: {fileID: 3802528782110637056, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_Text
+      value: DIFFICULTY
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195144, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 2088976598}
+    - target: {fileID: 3802528782412195144, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: CalculateDifficulty
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195144, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: nonogram.editor.NonogramEditor, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 2.4705
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0.4017
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 2.77
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -4.521
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195146, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_Name
+      value: DifficultyButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 3802528782412195146, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+--- !u!224 &396213118 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 3802528782412195145, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
+  m_PrefabInstance: {fileID: 396213117}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -640,6 +762,7 @@ RectTransform:
   - {fileID: 1260441650}
   - {fileID: 1385108254}
   - {fileID: 738945279}
+  - {fileID: 396213118}
   m_Father: {fileID: 2088976600}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -808,7 +931,7 @@ MonoBehaviour:
   level: EDITOR
   filename: 
   levelTitle: {fileID: 1260441648}
-  gridSize: 5
+  gridSize: 4
   spaceWidth: 0.05
   toggleCellPrefab: {fileID: 7318310866225899017, guid: 2ba9a10cab86b574d9bb172e94808602, type: 3}
   labelCellPrefab: {fileID: 3560588813286819044, guid: 1b131b530390f604ea8547e1ba9ed0df, type: 3}
