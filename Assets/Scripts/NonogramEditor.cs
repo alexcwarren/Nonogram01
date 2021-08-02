@@ -1,6 +1,5 @@
 using UnityEngine;
 using System; // for Exception class
-using System.Collections.Generic; // for Dictionary class
 using System.IO; // for StreamReader class
 using UnityEngine.UI; // for Text class
 
