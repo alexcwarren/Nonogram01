@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using System;
 
 using nonogram.nonogram;
@@ -12,8 +11,8 @@ public class ToggleCell : MonoBehaviour
 {
     private int row;
     private int col;
-    float duration = 0f;
-    bool mouseDown = false;
+    float holdDuration = 0f;
+    bool isMouseDown = false;
     public Button thisButton;
     public float holdTime = 0.2f;
     static public Color offColor = Color.white;
@@ -21,6 +20,7 @@ public class ToggleCell : MonoBehaviour
 
     void Start()
     {
+        // Get row and column of current ToggleCell from its Compononent name
         string[] coords = transform.GetComponent<ToggleCell>().name.Remove(0, "Toggle_".Length).Split(',');
         row = Int32.Parse(coords[0]);
         col = Int32.Parse(coords[1]);
@@ -28,21 +28,21 @@ public class ToggleCell : MonoBehaviour
 
     void Update()
     {
-        mouseDown = Input.GetMouseButton(0);
+        isMouseDown = Input.GetMouseButton(0);
 
-        if (mouseDown)
+        if (isMouseDown)
         {
-            duration += Time.deltaTime;
+            holdDuration += Time.deltaTime;
         }
         else
         {
-            duration = 0f;
+            holdDuration = 0f;
         }
     }
 
     void OnMouseOver()
     {
-        if (mouseDown && duration > holdTime)
+        if (isMouseDown && holdDuration > holdTime)
         {
             // Debug.Log($"Pointing at {this.name}");
             if (this.GetColor() == ToggleCell.GetOffColor())
