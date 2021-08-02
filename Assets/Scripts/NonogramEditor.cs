@@ -92,6 +92,60 @@ public class NonogramEditor : Nonogram
             return;
         }
     }
+
+    public string CalculateDifficulty()
+    {
+        const int SWEEP_COUNT_THRESHHOLD = 100;
+
+        bool isSolved = false;
+        int sweepCount = 0;
+
+        while (!isSolved && sweepCount < SWEEP_COUNT_THRESHHOLD)
+        {
+            sweepCount++;
+
+            if (HorizontalSweep() || VerticalSweep())
+            {
+                isSolved = true;
+                break;
+            }
+        }
+
+        string result = "";
+
+        if (isSolved)
+        {
+            result = sweepCount.ToString();
+        }
+        else
+        {
+            result = "?";
+        }
+
+        Debug.Log($"\n\nDIFFICULT = {result}\n\n");
+
+        return result;
+    }
+
+    bool HorizontalSweep()
+    {
+        return false;
+    }
+
+    void CheckColumn()
+    {
+        return;
+    }
+
+    bool VerticalSweep()
+    {
+        return false;
+    }
+
+    void CheckRow()
+    {
+        return;
+    }
 }
 
 }
