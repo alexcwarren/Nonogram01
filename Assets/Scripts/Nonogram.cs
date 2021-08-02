@@ -25,6 +25,7 @@ public class Nonogram : MonoBehaviour
     protected bool fileIsRead = false;
     protected static bool isEditor = false;
     protected bool mouseDown = false;
+    protected bool isValidSolution = false;
 
     public const int MAX_GRID_SIZE = 10;
     public string level;
@@ -228,7 +229,7 @@ public class Nonogram : MonoBehaviour
     {
         UpdateLabels();
 
-        bool isValidSolution = true;
+        isValidSolution = true;
 
         for (int row = 0; row < updatedCells.GetLength(0); row++)
         {

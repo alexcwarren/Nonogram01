@@ -93,7 +93,7 @@ public class NonogramEditor : Nonogram
         }
     }
 
-    public string CalculateDifficulty()
+    public void CalculateDifficulty()
     {
         const int SWEEP_COUNT_THRESHHOLD = 100;
 
@@ -102,6 +102,7 @@ public class NonogramEditor : Nonogram
 
         while (!isSolved && sweepCount < SWEEP_COUNT_THRESHHOLD)
         {
+            Debug.Log($"Is solution valid yet? >>> {isValidSolution}");
             sweepCount++;
 
             if (HorizontalSweep() || VerticalSweep())
@@ -123,27 +124,41 @@ public class NonogramEditor : Nonogram
         }
 
         Debug.Log($"\n\nDIFFICULTY = {result}\n\n");
-
-        return result;
     }
 
     bool HorizontalSweep()
     {
-        return false;
+        for (int col = 0; col < gridSize; col++)
+        {
+            CheckColumn(col);
+        }
+
+        SubmitSolution(true);
+        
+        return isValidSolution;
     }
 
-    void CheckColumn()
+    void CheckColumn(int col)
     {
+        Debug.Log($"Checking column {col}...");
         return;
     }
 
     bool VerticalSweep()
     {
-        return false;
+        for (int row = 0; row < gridSize; row++)
+        {
+            CheckRow(row);
+        }
+
+        SubmitSolution(true);
+        
+        return isValidSolution;
     }
 
-    void CheckRow()
+    void CheckRow(int row)
     {
+        Debug.Log($"Checking row {row}...");
         return;
     }
 }
