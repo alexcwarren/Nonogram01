@@ -1,11 +1,13 @@
 using UnityEngine;
 using System; // for Exception class
 using System.Collections.Generic; // for Dictionary class
-using System.IO; // for StreamReader class
+using System.IO; // for FileStrem class
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine.UI; // for Text class
 using UnityEngine.SceneManagement;
 
 using nonogram.cells;
+using nonogram.leveldata;
 
 namespace nonogram.nonogram
 {
@@ -16,6 +18,7 @@ public class Nonogram : MonoBehaviour
     string[,] cellData;
     Vector3 Origin;
     float backgroundWidth;
+    string filepath = "Assets/DataFiles/";
 
     static float cellWidth;
     
@@ -26,7 +29,7 @@ public class Nonogram : MonoBehaviour
     protected static GameObject[,] cellObjs;
     
     public string level;
-    public string filename = ".txt";
+    public string filename = ".dat";
     public Text levelTitle;
     public int gridSize = 4;
     public float spaceWidth = 0.05f;
@@ -90,65 +93,27 @@ public class Nonogram : MonoBehaviour
 
     protected void ReadDataFile()
     {
-        Debug.Log($"Reading {filename}...");
-        string line;
-
         try
         {
-            StreamReader sr = new StreamReader($"Assets/DataFiles/{filename}");
-            // Debug.Log($"Reading {filename}...");
+            string path = GetFilepath();
 
-            line = sr.ReadLine();
-            int num = 0;
-
-            try
+            if (!File.Exists(path))
             {
-                num = Int32.Parse(line);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"Exception: {e.Message}");
-                return;
+                throw new FileNotFoundException($"{path} not found.");
             }
 
-            if (num <= 2 || num > MAX_GRID_SIZE)
-            {
-                Debug.LogError($"ERROR: Incorrect grid size: {num}.");
-            }
+            Debug.Log($"Reading data from {path}...");
 
-            UpdateDimensions(num);
+            BinaryFormatter formatter = new BinaryFormatter();
+            FileStream stream = new FileStream(path, FileMode.Open);
 
-            cellData = new string[nonogramSize,nonogramSize];
+            LevelData levelData = formatter.Deserialize(stream) as LevelData;
 
-            line = sr.ReadLine();
+            UpdateDimensions(levelData.GetGridSize());
 
-            while (line != null)
-            {
-                if (line == "\n")
-                {
-                    continue;
-                }
+            cellData = levelData.GetCellData();
 
-                string[] tokens = line.Split(':');
-                if (tokens.Length != 2)
-                {
-                    Debug.LogError($"ERROR: Incorrect number of tokens: {tokens.Length} ({line}).");
-                    return;
-                }
-
-                int row = ParseCoordinates(tokens[0])[0];
-                int col = ParseCoordinates(tokens[0])[1];
-
-                if (tokens[1] == "0")
-                {
-                    tokens[1] = "";
-                }
-                cellData[row,col] = tokens[1];
-
-                line = sr.ReadLine();
-            }
-
-            sr.Close();
+            stream.Close();
         }
         catch (Exception e)
         {
@@ -194,15 +159,13 @@ public class Nonogram : MonoBehaviour
         TraverseToggleCells(instantiate: true);
     }
 
-    protected string TraverseToggleCells
+    protected void TraverseToggleCells
     (
         bool instantiate = false,
         bool load = false,
         bool clear = false
     )
     {
-        string toggleCellData = "";
-
         // Prevent more than one bool argument being true
         if
         (
@@ -210,7 +173,7 @@ public class Nonogram : MonoBehaviour
         )
         {
             Debug.LogError($"Only one argument can be set to 'true': instantiate={instantiate}, load={load}, clear={clear}.");
-            return toggleCellData;
+            return;
         }
 
         string function = "Traversing";
@@ -274,14 +237,10 @@ public class Nonogram : MonoBehaviour
                         cellObjs[row,col].GetComponent<ToggleCell>().TurnOff();
                     }
 
-                    toggleCellData += $"{row},{col}:{cellObjs[row,col].GetComponent<ToggleCell>().IsOn().ToString()}\n";
                     // cellObjs[row,col].GetComponent<ToggleCell>().Print();
                 } // end if at ToggleCell location
             } // end for col
         } // end for row
-
-        // Debug.Log($"toggleCellData = >>>{toggleCellData}<<<");
-        return toggleCellData;
     } // end TraverseToggleCells
 
     public void ClearToggleCells()
@@ -294,7 +253,7 @@ public class Nonogram : MonoBehaviour
         TraverseLabelCells(instantiate: true);
     }
 
-    protected string TraverseLabelCells
+    protected void TraverseLabelCells
     (
         bool instantiate = false
     )
@@ -305,7 +264,6 @@ public class Nonogram : MonoBehaviour
             function = "Instantiating";
         }
         Debug.Log($"{function} LabelCells...");
-        string labelCellData = "";
 
         rowLabels = new Dictionary<int, Label>();
         colLabels = new Dictionary<int, Label>();
@@ -376,19 +334,8 @@ public class Nonogram : MonoBehaviour
                         colLabels[col].Add(currLabelCell);
                     }
                 } // end if instantiate
-
-                // Load labelCellData
-                string cellText = cellObjs[row,col].GetComponent<LabelCell>().GetText();
-                if (cellText == "")
-                {
-                    cellText = "0";
-                }
-                labelCellData += $"{row},{col}:{cellText}\n";
             } // end for col
         } // end for row
-
-        // Debug.Log($"labelCellData = >>>{labelCellData}<<<");
-        return labelCellData;
     } // end TraverseLabelCells
 
     public void UpdateLabels(int toggleRow, int toggleCol)
@@ -415,7 +362,6 @@ public class Nonogram : MonoBehaviour
         {
             if (!labelsDict[key].isValid())
             {
-                Debug.Log($"Isn't valid!");
                 return false;
             }
         }
@@ -464,17 +410,6 @@ public class Nonogram : MonoBehaviour
         SetEndStatusButtons(false);
     }
 
-    static int[] ParseCoordinates(string coordStr)
-    {
-        string[] tokens = coordStr.Split(',');
-        
-        int r = Int32.Parse(tokens[0]);
-        int c = Int32.Parse(tokens[1]);
-
-        int[] coords = {r, c};
-        return coords;
-    }
-
     Vector3 GetVector3(int row, int col)
     {
         float x = Origin.x - backgroundWidth/2f + cellWidth*(col + 0.5f) + spaceWidth*(col + 1f);
@@ -482,6 +417,11 @@ public class Nonogram : MonoBehaviour
         // Debug.Log($"x={x}, y={y}");
 
         return new Vector3(x, y, Origin.z);
+    }
+
+    protected string GetFilepath()
+    {
+        return $"{filepath}{filename}";
     }
 
     public static int GetMaxLabels()

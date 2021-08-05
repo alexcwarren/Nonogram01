@@ -1,9 +1,11 @@
 using UnityEngine;
 using System; // for Exception class
-using System.IO; // for StreamReader class
+using System.IO; // for FileStream class
+using System.Runtime.Serialization.Formatters.Binary;
 
 using nonogram.nonogram;
 using nonogram.cells;
+using nonogram.leveldata;
 
 namespace nonogram.editor
 {
@@ -27,14 +29,16 @@ public class NonogramEditor : Nonogram
 
         try
         {
-            StreamWriter sw = new StreamWriter($"Assets/DataFiles/{filename}");
-            Debug.Log($"Saving {filename}...");
+            string filepath = GetFilepath();
+            Debug.Log($"Saving data to {filepath}...");
 
-            sw.WriteLine($"{gridSize}");
-            sw.Write(TraverseLabelCells());
-            sw.Write(TraverseToggleCells());
+            BinaryFormatter formatter = new BinaryFormatter();
+            FileStream stream = new FileStream(filepath, FileMode.Create);
 
-            sw.Close();
+            LevelData levelData = new LevelData(gridSize, cellObjs);
+            formatter.Serialize(stream, levelData);
+
+            stream.Close();
         }
         catch(Exception e)
         {

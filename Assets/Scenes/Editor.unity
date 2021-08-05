@@ -929,7 +929,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   level: EDITOR
-  filename: level01.txt
+  filename: 
   levelTitle: {fileID: 1260441648}
   gridSize: 4
   spaceWidth: 0.05
