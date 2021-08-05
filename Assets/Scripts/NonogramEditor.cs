@@ -3,6 +3,7 @@ using System; // for Exception class
 using System.IO; // for StreamReader class
 
 using nonogram.nonogram;
+using nonogram.cells;
 
 namespace nonogram.editor
 {
@@ -44,22 +45,28 @@ public class NonogramEditor : Nonogram
 
     public void CalculateDifficulty()
     {
-        const int SWEEP_COUNT_THRESHHOLD = 100;
+        // const int SWEEP_COUNT_THRESHHOLD = 100;
+        const int SWEEP_COUNT_THRESHHOLD = 1;
 
         bool isSolved = false;
         int sweepCount = 0;
 
+        // ClearToggleCells();
+
         while (!isSolved && sweepCount < SWEEP_COUNT_THRESHHOLD)
         {
-            Debug.Log($"Is solution valid yet? >>> {isValidSolution}");
             sweepCount++;
+            Debug.Log($"Sweep {sweepCount}: Attempting to solve...");
 
             if (HorizontalSweep() || VerticalSweep())
             {
+                Debug.Log($"Solved!");
                 isSolved = true;
                 break;
             }
         }
+        
+        // LoadTogglesData();
 
         string result = "";
 
@@ -77,7 +84,8 @@ public class NonogramEditor : Nonogram
 
     bool HorizontalSweep()
     {
-        for (int col = 0; col < gridSize; col++)
+        Debug.Log($"Starting HorizontalSweep...");
+        for (int col = maxLabels; col < nonogramSize; col++)
         {
             CheckColumn(col);
         }
@@ -87,7 +95,8 @@ public class NonogramEditor : Nonogram
 
     bool VerticalSweep()
     {
-        for (int row = 0; row < gridSize; row++)
+        Debug.Log($"Starting VerticalSweep...");
+        for (int row = maxLabels; row < nonogramSize; row++)
         {
             CheckRow(row);
         }
@@ -95,16 +104,26 @@ public class NonogramEditor : Nonogram
         return ValidateSolution();
     }
 
+    void CheckLabel(Label label)
+    {
+        Debug.Log($"Checking {label.name}...");
+
+        string labelText = "";
+        foreach (GameObject labelObj in label)
+        {
+            labelText += $"{labelObj.GetComponent<LabelCell>().GetText()} ";
+        }
+        Debug.Log($"{labelText}");
+    }
+
     void CheckRow(int row)
     {
-        Debug.Log($"Checking row {row}...");
-        return;
+        CheckLabel(rowLabels[row]);
     }
 
     void CheckColumn(int col)
     {
-        Debug.Log($"Checking column {col}...");
-        return;
+        CheckLabel(colLabels[col]);
     }
 } // end class NonogramEditor
 

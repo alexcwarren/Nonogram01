@@ -236,7 +236,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3802528782412195146, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a15ad5a2108b1d5489d36eb7d119e0ae, type: 3}
@@ -929,7 +929,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   level: EDITOR
-  filename: 
+  filename: level01.txt
   levelTitle: {fileID: 1260441648}
   gridSize: 4
   spaceWidth: 0.05

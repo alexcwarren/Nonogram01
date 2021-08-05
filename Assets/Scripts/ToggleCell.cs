@@ -191,10 +191,10 @@ public class LabelCell : Cell
 public abstract class Label : List<GameObject>
 {
     protected string type;
-    protected string name;
+    public string name;
     protected List<GameObject> toggles;
 
-    public virtual void UpdateLabel()
+    public virtual void UpdateLabel(bool updateText = true)
     {
         // Debug.Log($"Updating {this.name}...");
         List<int> counts = CountToggles(toggles);
@@ -215,7 +215,7 @@ public abstract class Label : List<GameObject>
             // Debug.Log($"{this[ii].name} hiddenValue={this[ii].GetComponent<LabelCell>().hiddenValue}");
             this[ii].GetComponent<LabelCell>().UpdateValue(value);
 
-            if (Nonogram.isEditor)
+            if (Nonogram.isEditor && updateText)
             {
                 // Debug.Log($"text={this[ii].GetComponent<LabelCell>().GetText()}");
                 this[ii].GetComponent<LabelCell>().UpdateText(value);
