@@ -1,10 +1,8 @@
 using UnityEngine;
 using System; // for Exception class
 using System.IO; // for StreamReader class
-using UnityEngine.UI; // for Text class
 
 using nonogram.nonogram;
-using nonogram.togglecell;
 
 namespace nonogram.editor
 {
@@ -32,56 +30,8 @@ public class NonogramEditor : Nonogram
             Debug.Log($"Saving {filename}...");
 
             sw.WriteLine($"{gridSize}");
-
-            for (int row = 0; row < nonogramSize; row++)
-            {
-                for (int col = 0; col < nonogramSize; col++)
-                {
-                    string key = $"{row},{col}";
-                    GameObject cell = cells[row,col];
-
-                    if (row < maxLabels && col < maxLabels)
-                    {
-                        continue;
-                    }
-                    // If ToggleCell
-                    else if (row >= maxLabels && col >= maxLabels)
-                    {
-                        bool isOn = false;
-
-                        // try
-                        // {
-                        //     isOn = cell.GetComponent<Image>().color == ToggleCell.GetOnColor();
-                        // }
-                        // catch(Exception e)
-                        // {
-                        //     Debug.LogError($"ERROR: at {row},{col}: {e.Message}");
-                        // }
-                        
-                        sw.WriteLine($"{key}:{isOn}");
-                    }
-                    // Else (i.e. LabelCell)
-                    else
-                    {
-                        string txt = "";
-
-                        try
-                        {
-                            txt = cell.GetComponentInChildren<Text>().text;
-                        }
-                        catch(Exception e)
-                        {
-                            Debug.LogError($"ERROR: at {row},{col}: {e.Message}");
-                        }
-
-                        if (txt == "")
-                        {
-                            txt = "0";
-                        }
-                        sw.WriteLine($"{key}:{txt}");
-                    }
-                }
-            }
+            sw.Write(TraverseLabelCells());
+            sw.Write(TraverseToggleCells());
 
             sw.Close();
         }
@@ -132,13 +82,7 @@ public class NonogramEditor : Nonogram
             CheckColumn(col);
         }
 
-        return ValidateSolution(true);
-    }
-
-    void CheckColumn(int col)
-    {
-        Debug.Log($"Checking column {col}...");
-        return;
+        return ValidateSolution();
     }
 
     bool VerticalSweep()
@@ -148,7 +92,7 @@ public class NonogramEditor : Nonogram
             CheckRow(row);
         }
 
-        return ValidateSolution(true);
+        return ValidateSolution();
     }
 
     void CheckRow(int row)
@@ -156,6 +100,12 @@ public class NonogramEditor : Nonogram
         Debug.Log($"Checking row {row}...");
         return;
     }
-}
 
-}
+    void CheckColumn(int col)
+    {
+        Debug.Log($"Checking column {col}...");
+        return;
+    }
+} // end class NonogramEditor
+
+} // end namespace nonogram.editor

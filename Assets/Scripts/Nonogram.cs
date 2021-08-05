@@ -5,29 +5,26 @@ using System.IO; // for StreamReader class
 using UnityEngine.UI; // for Text class
 using UnityEngine.SceneManagement;
 
-using nonogram.togglecell;
+using nonogram.cells;
 
 namespace nonogram.nonogram
 {
 
 public class Nonogram : MonoBehaviour
 {
-    protected Vector3 Origin;
-    protected float backgroundWidth;
-    protected float cellWidth;
-    protected static int maxLabels;
-    protected static int nonogramSize;
-    protected string[,] cellStrings;
-    protected static GameObject[,] cells;
-    static string[,] updatedCells; // May need to be "protected"
-    protected static Dictionary<string, GameObject> labels = new Dictionary<string, GameObject>();
-    protected static Dictionary<string, GameObject> toggles = new Dictionary<string, GameObject>();
-    protected bool fileIsRead = false;
-    protected static bool isEditor = false;
-    protected bool mouseDown = false;
+    bool fileIsRead = false;
+    string[,] cellData;
+    Vector3 Origin;
+    float backgroundWidth;
+
+    static float cellWidth;
+    
     protected bool isValidSolution = false;
 
-    public const int MAX_GRID_SIZE = 10;
+    protected static int maxLabels;
+    protected static int nonogramSize;
+    protected static GameObject[,] cellObjs;
+    
     public string level;
     public string filename = ".txt";
     public Text levelTitle;
@@ -37,6 +34,13 @@ public class Nonogram : MonoBehaviour
     public GameObject labelCellPrefab;
     public GameObject CorrectButton;
     public GameObject IncorrectButton;
+
+    public const int MAX_GRID_SIZE = 10;
+    public static Dictionary<int, Label> rowLabels;
+    public static Dictionary<int, Label> colLabels;
+    public static Dictionary<int, List<GameObject>> toggleCellRows;
+    public static Dictionary<int, List<GameObject>> toggleCellCols;
+    public static bool isEditor = false;
 
     void Start()
     {
@@ -49,22 +53,24 @@ public class Nonogram : MonoBehaviour
 
         backgroundWidth = transform.localScale.x;
 
+        UpdateDimensions(gridSize);
+
         if (filename != "")
         {
             ReadDataFile();
         }
-        else
-        {
-            UpdateDimensions(gridSize);
-        }
-
-        cells = new GameObject[nonogramSize,nonogramSize];
-
-        cellWidth = (backgroundWidth - spaceWidth*(nonogramSize + 1))/nonogramSize;
-
-        updatedCells = new string[nonogramSize,nonogramSize];
 
         InstantiateCells();
+
+        if (isEditor && fileIsRead)
+        {
+            LoadTogglesData();
+        }
+    }
+
+    protected void StartFromInheritor()
+    {
+        this.Start();
     }
 
     void UpdateDimensions(int size)
@@ -78,16 +84,15 @@ public class Nonogram : MonoBehaviour
         }
 
         nonogramSize = gridSize + maxLabels;
-    }
 
-    protected void StartFromInheritor()
-    {
-        this.Start();
+        cellWidth = (backgroundWidth - spaceWidth*(nonogramSize + 1))/nonogramSize;
     }
 
     protected void ReadDataFile()
     {
+        Debug.Log($"Reading {filename}...");
         string line;
+
         try
         {
             StreamReader sr = new StreamReader($"Assets/DataFiles/{filename}");
@@ -113,12 +118,17 @@ public class Nonogram : MonoBehaviour
 
             UpdateDimensions(num);
 
-            cellStrings = new string[nonogramSize,nonogramSize];
+            cellData = new string[nonogramSize,nonogramSize];
 
             line = sr.ReadLine();
 
             while (line != null)
             {
+                if (line == "\n")
+                {
+                    continue;
+                }
+
                 string[] tokens = line.Split(':');
                 if (tokens.Length != 2)
                 {
@@ -133,7 +143,7 @@ public class Nonogram : MonoBehaviour
                 {
                     tokens[1] = "";
                 }
-                cellStrings[row,col] = tokens[1];
+                cellData[row,col] = tokens[1];
 
                 line = sr.ReadLine();
             }
@@ -147,65 +157,19 @@ public class Nonogram : MonoBehaviour
         }
 
         fileIsRead = true;
-    }
-    
-    protected void InstantiateCells()
+
+        // for (int row = 0; row < cellData.GetLength(0); row++)
+        // {
+        //     for (int col = 0; col < cellData.GetLength(1); col++)
+        //     {
+        //         Debug.Log($"cellData[{row},{col}] = >>>{cellData[row,col]}<<<");
+        //     }
+        // }
+    } // end ReadDataFile
+
+    protected void LoadTogglesData()
     {
-        for (int row = 0; row < gridSize + maxLabels; row++)
-        {
-            for (int col = 0; col < gridSize + maxLabels; col++)
-            {
-                float x = Origin.x - backgroundWidth/2f + cellWidth*(col + 0.5f) + spaceWidth*(col + 1f);
-                float y = Origin.y + backgroundWidth/2f - cellWidth*(row + 0.5f) - spaceWidth*(row + 1f);
-                // Debug.Log($"x={x}, y={y}");
-
-                Vector3 currPos = new Vector3(x, y, Origin.z);
-
-                // If at LabelCell location
-                if (
-                     (row < maxLabels && col >= maxLabels)
-                     || (col < maxLabels && row >= maxLabels)
-                   )
-                {
-                    GameObject currLabelCell = Instantiate(labelCellPrefab, currPos, transform.rotation);
-                    currLabelCell.name = $"Label_{row},{col}";
-                    currLabelCell.transform.SetParent(transform.GetComponentInChildren<Canvas>().transform);
-                    currLabelCell.transform.localScale = new Vector3(cellWidth, cellWidth, 0f);
-
-                    if (fileIsRead)
-                    {
-                        string text = cellStrings[row,col];
-                        currLabelCell.GetComponentInChildren<Text>().text = text;
-                    }
-
-                    cells[row,col] = currLabelCell;
-                }
-                // Else If at ToggleCell location
-                else if (row >= maxLabels || col >= maxLabels)
-                {
-                    GameObject currToggleCell = Instantiate(toggleCellPrefab, currPos, transform.rotation);
-                    currToggleCell.name = $"Toggle_{row},{col}";
-                    currToggleCell.transform.SetParent(transform.GetComponentInChildren<Canvas>().transform);
-                    currToggleCell.transform.localScale = new Vector3(cellWidth, cellWidth, 0f);
-
-                    if (fileIsRead && isEditor)
-                    {
-                        string isOn = cellStrings[row,col];
-
-                        if (isOn == "True")
-                        {
-                            currToggleCell.GetComponentInChildren<Image>().color = ToggleCell.GetOnColor();
-                        }
-                        else
-                        {
-                            currToggleCell.GetComponentInChildren<Image>().color = ToggleCell.GetOffColor();
-                        }
-                    }
-
-                    cells[row,col] = currToggleCell;
-                }
-            } // end for col
-        } // end for row
+        TraverseToggleCells(load: true);
     }
 
     public void LoadMainMenu()
@@ -214,75 +178,274 @@ public class Nonogram : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-    public void ClearToggleCells()
+    void InstantiateCells()
     {
-        for (int row = maxLabels; row < nonogramSize; row++)
+        cellObjs = new GameObject[nonogramSize, nonogramSize];
+        
+        InstantiateToggleCells();
+        InstantiateLabels();
+    }
+
+    void InstantiateToggleCells()
+    {
+        toggleCellRows = new Dictionary<int, List<GameObject>>();
+        toggleCellCols = new Dictionary<int, List<GameObject>>();
+
+        TraverseToggleCells(instantiate: true);
+    }
+
+    protected string TraverseToggleCells
+    (
+        bool instantiate = false,
+        bool load = false,
+        bool clear = false
+    )
+    {
+        string toggleCellData = "";
+
+        // Prevent more than one bool argument being true
+        if
+        (
+            (instantiate && load) || (instantiate && clear) || (load && clear)
+        )
         {
-            for (int col = maxLabels; col < nonogramSize; col++)
+            Debug.LogError($"Only one argument can be set to 'true': instantiate={instantiate}, load={load}, clear={clear}.");
+            return toggleCellData;
+        }
+
+        string function = "Traversing";
+        if (instantiate)
+        {
+            function = "Instantiating";
+        }
+        else if (load)
+        {
+            function = "Loading";
+        }
+        else if (clear)
+        {
+            function = "Clearing";
+        }
+        Debug.Log($"{function} ToggleCells...");
+
+        for (int row = 0; row < cellObjs.GetLength(0); row++)
+        {
+            for (int col = 0; col < cellObjs.GetLength(1); col++)
             {
-                cells[row,col].GetComponent<Image>().color = ToggleCell.GetOffColor();
+                // If at ToggleCell location
+                if (row >= maxLabels && col >= maxLabels)
+                {
+                    if (instantiate)
+                    {
+                        GameObject currToggle = Instantiate(toggleCellPrefab, GetVector3(row, col), transform.rotation);
+                        cellObjs[row,col] = currToggle;
+                        
+                        // ToggleCell is already a component via ToggleCell prefab settings in Unity
+                        cellObjs[row,col].GetComponent<ToggleCell>().Initialize
+                        (
+                            this, row, col, currToggle, transform.GetComponentInChildren<Canvas>().transform
+                        );
+
+                        // If cell not already in row/colToggleCells, add new List to each Dictionary
+                        if (!toggleCellRows.ContainsKey(row))
+                        {
+                            toggleCellRows.Add(row, new List<GameObject>());
+                        }
+
+                        if (!toggleCellCols.ContainsKey(col))
+                        {
+                            toggleCellCols.Add(col, new List<GameObject>());
+                        }
+
+                        // Add ToggleCell objects to List in row/col Dictionaries
+                        toggleCellRows[row].Add(cellObjs[row,col]);
+                        toggleCellCols[col].Add(cellObjs[row,col]);
+                    }
+
+                    else if (load)
+                    {
+                        // Debug.Log($"Loading {cellObjs[row,col].name}...");
+                        string isOn = cellData[row,col];
+                        cellObjs[row,col].GetComponent<ToggleCell>().SetState(isOn == "True");
+                    }
+
+                    else if (clear)
+                    {
+                        cellObjs[row,col].GetComponent<ToggleCell>().TurnOff();
+                    }
+
+                    toggleCellData += $"{row},{col}:{cellObjs[row,col].GetComponent<ToggleCell>().IsOn().ToString()}\n";
+                    // cellObjs[row,col].GetComponent<ToggleCell>().Print();
+                } // end if at ToggleCell location
             } // end for col
         } // end for row
+
+        // Debug.Log($"toggleCellData = >>>{toggleCellData}<<<");
+        return toggleCellData;
+    } // end TraverseToggleCells
+
+    public void ClearToggleCells()
+    {
+        TraverseToggleCells(clear: true);
     }
 
-    public void SubmitSolution()
+    void InstantiateLabels()
     {
-        ValidateSolution();
+        TraverseLabelCells(instantiate: true);
     }
 
-    protected bool ValidateSolution(bool beQuiet = false)
+    protected string TraverseLabelCells
+    (
+        bool instantiate = false
+    )
     {
-        UpdateLabels();
-
-        isValidSolution = true;
-
-        for (int row = 0; row < updatedCells.GetLength(0); row++)
+        string function = "Traversing";
+        if (instantiate)
         {
-            for (int col = 0; col < updatedCells.GetLength(1); col++)
+            function = "Instantiating";
+        }
+        Debug.Log($"{function} LabelCells...");
+        string labelCellData = "";
+
+        rowLabels = new Dictionary<int, Label>();
+        colLabels = new Dictionary<int, Label>();
+
+        for (int row = 0; row < cellObjs.GetLength(0); row++)
+        {
+            for (int col = 0; col < cellObjs.GetLength(1); col++)
             {
-                // Continue if not a LabelCell
-                if (
-                     (row < maxLabels && col < maxLabels) // Empty cell
-                     || (row >= maxLabels && col >= maxLabels) // ToggleCell
-                   )
+                bool isRowLabelCell = false;
+                bool isColLabelCell = false;
+
+                // If at LabelCell location
+                if (row < maxLabels && col >= maxLabels)
+                {
+                    isColLabelCell = true;
+                }
+                else if (col < maxLabels && row >= maxLabels)
+                {
+                    isRowLabelCell = true;
+                }
+                else
                 {
                     continue;
                 }
 
-                string updated = updatedCells[row,col];
-                string cellTxt = cells[row,col].GetComponentInChildren<Text>().text;
-
-                // Debug.Log($"{row},{col}: updated={updated}, cellTxt={cellTxt}");
-
-                if (updated != cellTxt)
+                if (instantiate)
                 {
-                    if (!beQuiet)
-                    {
-                        Debug.Log($"INCORRECT");
+                    GameObject currLabelCell = Instantiate(labelCellPrefab, GetVector3(row, col), transform.rotation);
+                    
+                    currLabelCell.AddComponent<LabelCell>();
+                    currLabelCell.GetComponent<LabelCell>().Initialize
+                    (
+                        row, col, currLabelCell, transform.GetComponentInChildren<Canvas>().transform
+                    );
 
-                        IncorrectButton.transform.SetAsLastSibling();
-                        IncorrectButton.SetActive(true);
+                    if (fileIsRead)
+                    {
+                        string text = cellData[row,col];
+                        currLabelCell.GetComponent<LabelCell>().UpdateText(text);
                     }
 
-                    isValidSolution = false;
-                    break;
-                }
-            }
+                    cellObjs[row,col] = currLabelCell;
+                    // currLabelCell.GetComponent<LabelCell>().Print();
 
-            if (!isValidSolution)
+                    if (isRowLabelCell)
+                    {
+                        // If a Label for current row does not exist
+                        if (!rowLabels.ContainsKey(row))
+                        {
+                            // Add new Label to rowLabels
+                            rowLabels.Add(row, new RowLabel(row));
+                        }
+
+                        // Add currLabelCell to Label at row in rowLabels
+                        rowLabels[row].Add(currLabelCell);
+                    }
+
+                    if (isColLabelCell)
+                    {
+                        // If a Label for current col does not exist
+                        if (!colLabels.ContainsKey(col))
+                        {
+                            // Add new Label to colLabels
+                            colLabels.Add(col, new ColLabel(col));
+                        }
+
+                        // Add currLabelCell to Label at col in colLabels
+                        colLabels[col].Add(currLabelCell);
+                    }
+                } // end if instantiate
+
+                // Load labelCellData
+                string cellText = cellObjs[row,col].GetComponent<LabelCell>().GetText();
+                if (cellText == "")
+                {
+                    cellText = "0";
+                }
+                labelCellData += $"{row},{col}:{cellText}\n";
+            } // end for col
+        } // end for row
+
+        // Debug.Log($"labelCellData = >>>{labelCellData}<<<");
+        return labelCellData;
+    } // end TraverseLabelCells
+
+    public void UpdateLabels(int toggleRow, int toggleCol)
+    {
+        if (rowLabels.ContainsKey(toggleRow))
+        {
+            rowLabels[toggleRow].UpdateLabel();
+        }
+
+        if (colLabels.ContainsKey(toggleCol))
+        {
+            colLabels[toggleCol].UpdateLabel();
+        }
+    }
+
+    bool CompareLabels()
+    {
+        return CheckLabels(rowLabels) && CheckLabels(colLabels);
+    }
+
+    bool CheckLabels(Dictionary<int, Label> labelsDict)
+    {
+        foreach (int key in labelsDict.Keys)
+        {
+            if (!labelsDict[key].isValid())
             {
-                break;
+                Debug.Log($"Isn't valid!");
+                return false;
             }
         }
 
-        if (isValidSolution && !beQuiet)
+        return true;
+    }
+
+    public void SubmitSolution()
+    {
+        isValidSolution = ValidateSolution();
+
+        if (!isValidSolution)
+        {
+            Debug.Log($"INCORRECT");
+
+            IncorrectButton.transform.SetAsLastSibling();
+            IncorrectButton.SetActive(true);
+        }
+        else
         {
             Debug.Log($"Correct!");
+
             CorrectButton.transform.SetAsLastSibling();
             CorrectButton.SetActive(true);
         }
+    }
 
-        return isValidSolution;
+    protected bool ValidateSolution()
+    {
+        return CompareLabels();
     }
 
     void SetEndStatusButtons(bool status)
@@ -301,192 +464,6 @@ public class Nonogram : MonoBehaviour
         SetEndStatusButtons(false);
     }
 
-    public static void UpdateLabels()
-    {
-        // Reset updateCells elements
-        for (int i = 0; i < updatedCells.GetLength(0); i++)
-        {
-            for (int j = 0; j < updatedCells.GetLength(1); j++)
-            {
-                updatedCells[i,j] = "";
-            }
-        }
-        
-        HashSet<int> visitedRowLabels = new HashSet<int>();
-        HashSet<int> visitedColLabels = new HashSet<int>();
-        
-        // Debug.Log("Traversing all labels...");
-        for (int lblRow = 0; lblRow < cells.GetLength(0); lblRow++)
-        {
-            for (int lblCol = 0; lblCol < cells.GetLength(1); lblCol++)
-            {
-                if (
-                        (lblRow >= maxLabels && lblCol >= maxLabels) // If at ToggleCell coordinates
-                        || (visitedRowLabels.Contains(lblRow) || visitedColLabels.Contains(lblCol)) // If already visisted Row/Column LabelCell
-                    )
-                {
-                    continue;
-                }
-
-                if (
-                        (lblRow < maxLabels && lblCol >= maxLabels) // Column LabelCell
-                        || (lblCol < maxLabels && lblRow >= maxLabels) // Row LabelCell
-                    )
-                {
-                    GameObject lblObj = cells[lblRow,lblCol];
-                    // Debug.Log($"At Label {lblRow},{lblCol}");
-
-                    string lblTxt = "";
-                    try
-                    {
-                        lblTxt = lblObj.GetComponentInChildren<Text>().text;
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogError($"ERROR: at {lblRow},{lblCol}: {e.Message}");
-                    }
-                    // Debug.Log($"Label currently is: >>>{lblTxt}<<<");
-                    
-                    List<int> counts = new List<int>();
-                    counts.Add(0);
-                    
-                    bool isRowLabel = false;
-                    bool isColLabel = false;
-                    int tglRow = lblRow;
-                    int tglCol = lblCol;
-                    int rowOffset = 0;
-                    int colOffset = 0;
-                    bool lastWasOn = false;
-                    bool isFirstToggle = true;
-
-                    // If LabelCell is a row LabelCell
-                    if (lblRow >= maxLabels)
-                    {
-                        isRowLabel = true;
-                        visitedRowLabels.Add(lblRow);
-                        tglCol = maxLabels;
-                        colOffset = 1;
-                    }
-                    // Else (i.e. is a column LabelCell)
-                    else
-                    {
-                        isColLabel = true;
-                        visitedColLabels.Add(lblCol);
-                        tglRow = maxLabels;
-                        rowOffset = 1;
-                    }
-                    
-                    // Debug.Log($"Checking its {nonogramSize - maxLabels} Toggles...");
-                    for (int i = 0; i < (nonogramSize - maxLabels); i++)
-                    {
-                        // Debug.Log($"At Toggle {tglRow},{tglCol}");
-                        GameObject tglObj = cells[tglRow,tglCol];
-
-                        bool isToggleOn = false;
-                        try
-                        {
-                            isToggleOn = tglObj.GetComponent<Image>().color == ToggleCell.GetOnColor();
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogError($"ERROR: at {tglRow},{tglCol}: {e.Message}");
-                        }
-
-                        // Debug.Log($"Toggle status: {isToggleOn}");
-
-                        // Increment if True
-                        if (isToggleOn)
-                        {
-                            if (lastWasOn || isFirstToggle)
-                            {
-                                // Debug.Log($"Last was on, or this is 1st toggle checked for this label");
-                                counts[counts.Count - 1]++;
-                                isFirstToggle = false;
-                            }
-                            else
-                            {
-                                // Debug.Log($"Last was not on");
-                                counts.Add(1);
-                            }
-                        }
-
-                        // Debug.Log($"Now visited {i+1} Toggles");
-
-                        tglRow += rowOffset;
-                        tglCol += colOffset;
-                        lastWasOn = isToggleOn;
-                    } // end for LabelCell's ToggleCells
-
-                    // Reset Row/Column LabelCell (current and adjacent, i.e. same Row/Col)
-                    for (int i = 0; i < maxLabels; i++)
-                    {
-                        if (isRowLabel)
-                        {
-                            if (isEditor)
-                            {
-                                cells[lblRow,lblCol + i].GetComponentInChildren<Text>().text = "";
-                            }
-                            // else
-                            // {}
-                        }
-                        else if (isColLabel)
-                        {
-                            if (isEditor)
-                            {
-                                cells[lblRow + i,lblCol].GetComponentInChildren<Text>().text = "";
-                            }
-                            // else
-                            // {}
-                        }
-                        else
-                        {
-                            Debug.LogError($"ERROR!");
-                            return;
-                        }
-                    }
-
-                    for (int i = 0; i < counts.Count; i++)
-                    {
-                        // Debug.Log($"counts[{i}] = {counts[i]}");
-                        string countTxt = counts[i].ToString();
-                        if (counts[i] == 0)
-                        {
-                            continue;
-                        }
-
-                        if (isRowLabel)
-                        {
-                            if (isEditor)
-                            {
-                                cells[lblRow,lblCol + i].GetComponentInChildren<Text>().text = countTxt;
-                            }
-                            else
-                            {
-                                updatedCells[lblRow,lblCol + i] = countTxt;
-                            }
-                        }
-                        else if (isColLabel)
-                        {
-                            if (isEditor)
-                            {
-                                cells[lblRow + i,lblCol].GetComponentInChildren<Text>().text = countTxt;
-                            }
-                            else
-                            {
-                                updatedCells[lblRow + i,lblCol] = countTxt;
-                            }
-                        }
-                        else
-                        {
-                            Debug.LogError($"ERROR!");
-                            return;
-                        }
-                    }
-                } // end if valid lblRow and lblCol
-            } // end for lblCol
-        } // end for lblRow
-    }
-
     static int[] ParseCoordinates(string coordStr)
     {
         string[] tokens = coordStr.Split(',');
@@ -497,6 +474,25 @@ public class Nonogram : MonoBehaviour
         int[] coords = {r, c};
         return coords;
     }
-}
 
-}
+    Vector3 GetVector3(int row, int col)
+    {
+        float x = Origin.x - backgroundWidth/2f + cellWidth*(col + 0.5f) + spaceWidth*(col + 1f);
+        float y = Origin.y + backgroundWidth/2f - cellWidth*(row + 0.5f) - spaceWidth*(row + 1f);
+        // Debug.Log($"x={x}, y={y}");
+
+        return new Vector3(x, y, Origin.z);
+    }
+
+    public static int GetMaxLabels()
+    {
+        return maxLabels;
+    }
+
+    public static float GetCellWidth()
+    {
+        return cellWidth;
+    }
+} // end class Nonogram
+
+} // end namespace nonogram.nonogram
