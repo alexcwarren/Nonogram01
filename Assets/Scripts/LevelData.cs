@@ -61,6 +61,6 @@ public class LevelData
     {
         return this.cellData;
     }
-}
+} // end LevelData class
 
 } // end namespace nonogram.leveldata

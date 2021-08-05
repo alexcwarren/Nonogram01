@@ -410,17 +410,6 @@ public class Nonogram : MonoBehaviour
         SetEndStatusButtons(false);
     }
 
-    static int[] ParseCoordinates(string coordStr)
-    {
-        string[] tokens = coordStr.Split(',');
-        
-        int r = Int32.Parse(tokens[0]);
-        int c = Int32.Parse(tokens[1]);
-
-        int[] coords = {r, c};
-        return coords;
-    }
-
     Vector3 GetVector3(int row, int col)
     {
         float x = Origin.x - backgroundWidth/2f + cellWidth*(col + 0.5f) + spaceWidth*(col + 1f);
