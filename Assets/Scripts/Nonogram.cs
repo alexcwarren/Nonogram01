@@ -18,7 +18,7 @@ public class Nonogram : MonoBehaviour
     string[,] cellData;
     Vector3 Origin;
     float backgroundWidth;
-    string filepath = "Assets/DataFiles/";
+    string filepath = "Assets/LevelData/";
 
     static float cellWidth;
     
