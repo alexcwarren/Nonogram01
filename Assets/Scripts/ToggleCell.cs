@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System;
-using System.Collections.Generic; // for List class?
+using System.Collections.Generic;
 
 using nonogram.nonogram;
+using nonogram.userdata;
 
 namespace nonogram.cells
 {
@@ -40,7 +40,7 @@ public abstract class Cell : MonoBehaviour
     {
         Debug.Log($"{type}Cell: row {row}, column {col}, name {obj.name}");
     }
-}
+} // end Cell class
 
 public class ToggleCell : Cell
 {
@@ -125,7 +125,13 @@ public class ToggleCell : Cell
 
         this.isOn = isOn;
 
-        this.nonogram.UpdateLabels(row, col);
+        if (!Nonogram.isEditor)
+        {
+            this.nonogram.levelData.UpdateCellData(this.row, this.col, this.isOn);
+            UserData.SaveLevelData(this.nonogram.levelData);
+        }
+
+        this.nonogram.UpdateLabels(this.row, this.col);
     }
 
     public bool IsOn()
@@ -141,6 +147,16 @@ public class ToggleCell : Cell
     public void TurnOff()
     {
         this.SetState(false);
+    }
+
+    public void Enable()
+    {
+        thisButton.interactable = true;
+    }
+
+    public void Disable()
+    {
+        thisButton.interactable = false;
     }
 
     public static Color GetOffColor()
@@ -185,7 +201,7 @@ public class LabelCell : Cell
         // Debug.Log($"{this.obj.name}: text={this.GetText()}, value={this.hiddenValue}");
         return this.GetText() == this.hiddenValue;
     }
-}
+} // end LabelCell class
 
 
 public abstract class Label : List<GameObject>
@@ -280,7 +296,7 @@ public abstract class Label : List<GameObject>
 
         return counts;
     }
-}
+} // end Label class
 
 public class RowLabel : Label
 {
@@ -293,7 +309,7 @@ public class RowLabel : Label
         this.name = $"{this.type}Label{this.row}";
         this.toggles = Nonogram.toggleCellRows[this.row];
     }
-}
+} // end RowLabel class
 
 public class ColLabel : Label
 {
@@ -306,6 +322,6 @@ public class ColLabel : Label
         this.name = $"{this.type}Label{this.col}";
         this.toggles = Nonogram.toggleCellCols[this.col];
     }
-}
+} // end ColLabel class
 
 } // end namespace nonogram.cells

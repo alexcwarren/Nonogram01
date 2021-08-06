@@ -1,12 +1,13 @@
 using UnityEngine;
 using System; // for Exception class
 using System.Collections.Generic; // for Dictionary class
-using System.IO; // for FileStrem class
+using System.IO; // for FileStream class
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine.UI; // for Text class
 using UnityEngine.SceneManagement;
 
 using nonogram.cells;
+using nonogram.userdata;
 using nonogram.leveldata;
 
 namespace nonogram.nonogram
@@ -18,7 +19,7 @@ public class Nonogram : MonoBehaviour
     string[,] cellData;
     Vector3 Origin;
     float backgroundWidth;
-    string filepath = "Assets/DataFiles/";
+    string filepath = "Assets/LevelData/";
 
     static float cellWidth;
     
@@ -29,6 +30,8 @@ public class Nonogram : MonoBehaviour
     protected static GameObject[,] cellObjs;
     
     public string level;
+    public int nextLevel;
+    public LevelData levelData;
     public string filename = ".dat";
     public Text levelTitle;
     public int gridSize = 4;
@@ -49,6 +52,11 @@ public class Nonogram : MonoBehaviour
     {
         HideEndStatusButtons();
 
+        if (UserData.Username == "" || UserData.Username == null)
+        {
+            UserData.Username = "default";
+        }
+
         levelTitle.text = $"LEVEL {level}";
         // Debug.Log($"Loading {levelTitle.text}...");
 
@@ -65,7 +73,11 @@ public class Nonogram : MonoBehaviour
 
         InstantiateCells();
 
-        if (isEditor && fileIsRead)
+        if (!isEditor)
+        {
+            LoadUserData();
+        }
+        else if (fileIsRead)
         {
             LoadTogglesData();
         }
@@ -74,6 +86,35 @@ public class Nonogram : MonoBehaviour
     protected void StartFromInheritor()
     {
         this.Start();
+    }
+
+    void LoadUserData()
+    {
+        // Check for existing levelData for current user
+        if (!UserData.LoadLevelData(level))
+        {
+            UserData.SaveLevelData(levelData);
+            return;
+        }
+
+        // If it exists, load users's ToggleCell progress
+        LevelData userLevelData = UserData.levelsData[level];
+        userLevelData.PrintCellData();
+
+        for (int row = maxLabels; row < userLevelData.GetCellData().GetLength(0); row++)
+        {
+            for (int col = maxLabels; col < userLevelData.GetCellData().GetLength(1); col++)
+            {
+                if (userLevelData.GetCellData()[row,col] == "True")
+                {
+                    cellObjs[row,col].GetComponent<ToggleCell>().TurnOn();
+                }
+                else
+                {
+                    cellObjs[row,col].GetComponent<ToggleCell>().TurnOff();
+                }
+            }
+        }
     }
 
     void UpdateDimensions(int size)
@@ -102,12 +143,13 @@ public class Nonogram : MonoBehaviour
                 throw new FileNotFoundException($"{path} not found.");
             }
 
-            Debug.Log($"Reading data from {path}...");
+            // Debug.Log($"Reading data from {path}...");
 
             BinaryFormatter formatter = new BinaryFormatter();
             FileStream stream = new FileStream(path, FileMode.Open);
 
-            LevelData levelData = formatter.Deserialize(stream) as LevelData;
+            levelData = formatter.Deserialize(stream) as LevelData;
+            levelData.level = this.level;
 
             UpdateDimensions(levelData.GetGridSize());
 
@@ -143,6 +185,11 @@ public class Nonogram : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
+    public void LoadNextLevel()
+    {
+        SceneManager.LoadScene(nextLevel);
+    }
+
     void InstantiateCells()
     {
         cellObjs = new GameObject[nonogramSize, nonogramSize];
@@ -163,20 +210,23 @@ public class Nonogram : MonoBehaviour
     (
         bool instantiate = false,
         bool load = false,
-        bool clear = false
+        bool clear = false,
+        bool disable = false
     )
     {
         // Prevent more than one bool argument being true
         if
         (
-            (instantiate && load) || (instantiate && clear) || (load && clear)
+            (instantiate && load) || (instantiate && clear) || (instantiate && disable)
+            || (load && clear) || (load && disable)
+            || (clear && disable)
         )
         {
-            Debug.LogError($"Only one argument can be set to 'true': instantiate={instantiate}, load={load}, clear={clear}.");
+            Debug.LogError($"Only one argument can be set to 'true': instantiate={instantiate}, load={load}, clear={clear}, disable={disable}.");
             return;
         }
 
-        string function = "Traversing";
+        /* string function = "Traversing";
         if (instantiate)
         {
             function = "Instantiating";
@@ -189,56 +239,65 @@ public class Nonogram : MonoBehaviour
         {
             function = "Clearing";
         }
-        Debug.Log($"{function} ToggleCells...");
-
-        for (int row = 0; row < cellObjs.GetLength(0); row++)
+        else if (disable)
         {
-            for (int col = 0; col < cellObjs.GetLength(1); col++)
+            function = "Disabling";
+        }
+        Debug.Log($"{function} ToggleCells..."); */
+
+        for (int row = maxLabels; row < cellObjs.GetLength(0); row++)
+        {
+            for (int col = maxLabels; col < cellObjs.GetLength(1); col++)
             {
-                // If at ToggleCell location
-                if (row >= maxLabels && col >= maxLabels)
+                if (instantiate)
                 {
-                    if (instantiate)
+                    GameObject currToggle = Instantiate(toggleCellPrefab, GetVector3(row, col), transform.rotation);
+                    cellObjs[row,col] = currToggle;
+                    
+                    // ToggleCell is already a component via ToggleCell prefab settings in Unity
+                    cellObjs[row,col].GetComponent<ToggleCell>().Initialize
+                    (
+                        this, row, col, currToggle, transform.GetComponentInChildren<Canvas>().transform
+                    );
+
+                    // If cell not already in row/colToggleCells, add new List to each Dictionary
+                    if (!toggleCellRows.ContainsKey(row))
                     {
-                        GameObject currToggle = Instantiate(toggleCellPrefab, GetVector3(row, col), transform.rotation);
-                        cellObjs[row,col] = currToggle;
-                        
-                        // ToggleCell is already a component via ToggleCell prefab settings in Unity
-                        cellObjs[row,col].GetComponent<ToggleCell>().Initialize
-                        (
-                            this, row, col, currToggle, transform.GetComponentInChildren<Canvas>().transform
-                        );
-
-                        // If cell not already in row/colToggleCells, add new List to each Dictionary
-                        if (!toggleCellRows.ContainsKey(row))
-                        {
-                            toggleCellRows.Add(row, new List<GameObject>());
-                        }
-
-                        if (!toggleCellCols.ContainsKey(col))
-                        {
-                            toggleCellCols.Add(col, new List<GameObject>());
-                        }
-
-                        // Add ToggleCell objects to List in row/col Dictionaries
-                        toggleCellRows[row].Add(cellObjs[row,col]);
-                        toggleCellCols[col].Add(cellObjs[row,col]);
+                        toggleCellRows.Add(row, new List<GameObject>());
                     }
 
-                    else if (load)
+                    if (!toggleCellCols.ContainsKey(col))
                     {
-                        // Debug.Log($"Loading {cellObjs[row,col].name}...");
-                        string isOn = cellData[row,col];
-                        cellObjs[row,col].GetComponent<ToggleCell>().SetState(isOn == "True");
+                        toggleCellCols.Add(col, new List<GameObject>());
                     }
 
-                    else if (clear)
-                    {
-                        cellObjs[row,col].GetComponent<ToggleCell>().TurnOff();
-                    }
+                    // Add ToggleCell objects to List in row/col Dictionaries
+                    toggleCellRows[row].Add(cellObjs[row,col]);
+                    toggleCellCols[col].Add(cellObjs[row,col]);
+                }
 
-                    // cellObjs[row,col].GetComponent<ToggleCell>().Print();
-                } // end if at ToggleCell location
+                if (disable)
+                {
+                    cellObjs[row,col].GetComponent<ToggleCell>().Disable();
+                }
+                else
+                {
+                    cellObjs[row,col].GetComponent<ToggleCell>().Enable();
+                }
+
+                if (load)
+                {
+                    // Debug.Log($"Loading {cellObjs[row,col].name}...");
+                    string isOn = cellData[row,col];
+                    cellObjs[row,col].GetComponent<ToggleCell>().SetState(isOn == "True");
+                }
+
+                else if (clear)
+                {
+                    cellObjs[row,col].GetComponent<ToggleCell>().TurnOff();
+                }
+
+                // cellObjs[row,col].GetComponent<ToggleCell>().Print();
             } // end for col
         } // end for row
     } // end TraverseToggleCells
@@ -258,12 +317,12 @@ public class Nonogram : MonoBehaviour
         bool instantiate = false
     )
     {
-        string function = "Traversing";
+        /* string function = "Traversing";
         if (instantiate)
         {
             function = "Instantiating";
         }
-        Debug.Log($"{function} LabelCells...");
+        Debug.Log($"{function} LabelCells..."); */
 
         rowLabels = new Dictionary<int, Label>();
         colLabels = new Dictionary<int, Label>();
@@ -386,6 +445,11 @@ public class Nonogram : MonoBehaviour
 
             CorrectButton.transform.SetAsLastSibling();
             CorrectButton.SetActive(true);
+
+            TraverseToggleCells(disable: true);
+
+            UserData.CompleteLevel(level);
+            UserData.SaveLevelProgress();
         }
     }
 
@@ -408,6 +472,17 @@ public class Nonogram : MonoBehaviour
         }
 
         SetEndStatusButtons(false);
+    }
+
+    public void CorrectClicked()
+    {
+        TraverseToggleCells(clear: true);
+        HideEndStatusButtons();
+
+        if (!isEditor)
+        {
+            LoadNextLevel();
+        }
     }
 
     Vector3 GetVector3(int row, int col)

@@ -853,7 +853,7 @@ PrefabInstance:
       objectReference: {fileID: 2088976598}
     - target: {fileID: 3333304382390014605, guid: 87b76132220e89f47b646a89eec8d8f9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: HideEndStatusButtons
+      value: CorrectClicked
       objectReference: {fileID: 0}
     - target: {fileID: 3333304382390014605, guid: 87b76132220e89f47b646a89eec8d8f9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -916,6 +916,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   level: 01
+  nextLevel: 2
+  levelData:
+    level: 
   filename: level01.dat
   levelTitle: {fileID: 1260441648}
   gridSize: 4

@@ -4,6 +4,8 @@ using UnityEngine.SceneManagement;
 
 public class LevelButton : MonoBehaviour
 {
+    public LevelButton prevButton;
+    public LevelButton nextButton;
     public Button button;
     public Text text;
     public int levelBuildIndex;
@@ -20,6 +22,18 @@ public class LevelButton : MonoBehaviour
         {
             text.color = activeFontColor;
         }
+    }
+
+    public void Enable()
+    {
+        text.color = activeFontColor;
+        button.interactable = true;
+    }
+
+    public void Disable()
+    {
+        text.color = inactiveFontColor;
+        button.interactable = false;
     }
 
     public void LoadLevel()
