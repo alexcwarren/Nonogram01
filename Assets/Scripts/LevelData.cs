@@ -10,13 +10,32 @@ namespace nonogram.leveldata
 [Serializable]
 public class LevelData
 {
+    public string level;
     int gridSize;
+    public int NonogramSize{get;}
     string[,] cellData;
 
     public LevelData(int gridSize, GameObject[,] cellObjs)
     {
         this.gridSize = gridSize;
+        this.NonogramSize = this.gridSize + Nonogram.GetMaxLabels();
         InitializeCellData(cellObjs);
+    }
+
+    public LevelData(string level, int gridSize)
+    {
+        this.level = level;
+        this.gridSize = gridSize;
+        this.NonogramSize = this.gridSize + Nonogram.GetMaxLabels();
+
+        this.cellData = new string[this.NonogramSize, this.NonogramSize];
+        for (int row = Nonogram.GetMaxLabels(); row < NonogramSize; row++)
+        {
+            for (int col = Nonogram.GetMaxLabels(); col < NonogramSize; col++)
+            {
+                this.cellData[row,col] = false.ToString();
+            }
+        }
     }
 
     void InitializeCellData(GameObject[,] cellObjs)
@@ -52,6 +71,18 @@ public class LevelData
         }
     }
 
+    public void UpdateCellData(int row, int col, bool state)
+    {
+        // Prevent invalid row/col values
+        if (row < Nonogram.GetMaxLabels() || col < Nonogram.GetMaxLabels())
+        {
+            Debug.LogError($"Invalid index: row/col must be >= {Nonogram.GetMaxLabels()}: row={row}, col={col}.");
+            return;
+        }
+
+        this.cellData[row,col] = state.ToString();
+    }
+
     public int GetGridSize()
     {
         return this.gridSize;
@@ -60,6 +91,27 @@ public class LevelData
     public string[,] GetCellData()
     {
         return this.cellData;
+    }
+
+    public void PrintCellData()
+    {
+        Debug.Log($"levelData:");
+        for (int row = Nonogram.GetMaxLabels(); row < cellData.GetLength(0); row++)
+        {
+            string message = $"{row}: ";
+            for (int col = Nonogram.GetMaxLabels(); col < cellData.GetLength(0); col++)
+            {
+                if (cellData[row,col] == "True")
+                {
+                    message += "1 ";
+                }
+                else
+                {
+                    message += "0 ";
+                }
+            }
+            Debug.Log($"{message}");
+        }
     }
 } // end LevelData class
 

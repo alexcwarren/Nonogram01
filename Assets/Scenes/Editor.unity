@@ -929,6 +929,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   level: EDITOR
+  nextLevel: 0
+  levelData:
+    level: 
   filename: 
   levelTitle: {fileID: 1260441648}
   gridSize: 4
